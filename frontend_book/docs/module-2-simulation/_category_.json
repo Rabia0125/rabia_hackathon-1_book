@@ -1,0 +1,8 @@
+{
+  "label": "Module 2: The Digital Twin",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Physics-based simulation and digital twins for humanoid robots using Gazebo and Unity."
+  }
+}
