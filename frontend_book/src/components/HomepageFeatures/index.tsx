@@ -1,57 +1,71 @@
 import type {ReactNode} from 'react';
 import clsx from 'clsx';
 import Heading from '@theme/Heading';
+import Link from '@docusaurus/Link';
 import styles from './styles.module.css';
 
 type FeatureItem = {
   title: string;
-  Svg: React.ComponentType<React.ComponentProps<'svg'>>;
+  emoji: string;
   description: ReactNode;
+  link: string;
 };
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    title: 'ROS 2 Fundamentals',
+    emoji: '🤖',
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Master the Robot Operating System for real-time robot control and communication.
+        Learn nodes, topics, services, and actions.
       </>
     ),
+    link: '/docs/module-1-ros2',
   },
   {
-    title: 'Focus on What Matters',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    title: 'Simulation & Digital Twins',
+    emoji: '🌐',
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Build virtual robots in Gazebo and Unity for safe testing and development.
+        Create physics-accurate digital twins.
       </>
     ),
+    link: '/docs/module-2-simulation',
   },
   {
-    title: 'Powered by React',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    title: 'NVIDIA Isaac Platform',
+    emoji: '⚡',
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Leverage GPU-accelerated robotics with Isaac Sim and ROS integration.
+        Train AI models in photorealistic environments.
       </>
     ),
+    link: '/docs/module-3-isaac',
+  },
+  {
+    title: 'Vision-Language-Action',
+    emoji: '🧠',
+    description: (
+      <>
+        Implement cutting-edge VLA models for intelligent robot behavior.
+        Bridge perception, language understanding, and physical actions.
+      </>
+    ),
+    link: '/docs/module-4-vla',
   },
 ];
 
-function Feature({title, Svg, description}: FeatureItem) {
+function Feature({title, emoji, description, link}: FeatureItem) {
   return (
-    <div className={clsx('col col--4')}>
-      <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
-      </div>
-      <div className="text--center padding-horiz--md">
-        <Heading as="h3">{title}</Heading>
-        <p>{description}</p>
-      </div>
+    <div className={clsx('col col--3')}>
+      <Link to={link} className={styles.featureCard}>
+        <div className={styles.featureEmoji}>{emoji}</div>
+        <Heading as="h3" className={styles.featureTitle}>{title}</Heading>
+        <p className={styles.featureDescription}>{description}</p>
+      </Link>
     </div>
   );
 }
@@ -60,6 +74,9 @@ export default function HomepageFeatures(): ReactNode {
   return (
     <section className={styles.features}>
       <div className="container">
+        <Heading as="h2" className={styles.sectionTitle}>
+          What You'll Learn
+        </Heading>
         <div className="row">
           {FeatureList.map((props, idx) => (
             <Feature key={idx} {...props} />

@@ -49,6 +49,8 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           // Remove edit links for now
           editUrl: undefined,
+          // T027: Enable table of contents
+          showLastUpdateTime: false,
         },
         blog: false, // Disable blog for book-focused site
         theme: {
@@ -64,6 +66,11 @@ const config: Config = {
     colorMode: {
       respectPrefersColorScheme: true,
     },
+    // T027: Table of contents configuration
+    tableOfContents: {
+      minHeadingLevel: 2,
+      maxHeadingLevel: 4,
+    },
     navbar: {
       title: 'Physical AI & Robotics',
       logo: {
@@ -78,7 +85,7 @@ const config: Config = {
           label: 'Book',
         },
         {
-          href: 'https://github.com/your-username/my-book',
+          href: 'https://github.com/Rabia0125/rabia_hackathon-1_book',
           label: 'GitHub',
           position: 'right',
         },
@@ -98,6 +105,23 @@ const config: Config = {
               label: 'Module 1: ROS 2',
               to: '/docs/module-1-ros2',
             },
+            {
+              label: 'Module 2: Simulation',
+              to: '/docs/module-2-simulation',
+            },
+          ],
+        },
+        {
+          title: 'Modules',
+          items: [
+            {
+              label: 'Module 3: Isaac',
+              to: '/docs/module-3-isaac',
+            },
+            {
+              label: 'Module 4: VLA',
+              to: '/docs/module-4-vla',
+            },
           ],
         },
         {
@@ -108,17 +132,17 @@ const config: Config = {
               href: 'https://docs.ros.org/en/humble/',
             },
             {
-              label: 'URDF Tutorials',
-              href: 'https://wiki.ros.org/urdf/Tutorials',
+              label: 'NVIDIA Isaac',
+              href: 'https://developer.nvidia.com/isaac-sim',
             },
           ],
         },
         {
-          title: 'More',
+          title: 'Community',
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/your-username/my-book',
+              href: 'https://github.com/Rabia0125/rabia_hackathon-1_book',
             },
           ],
         },
