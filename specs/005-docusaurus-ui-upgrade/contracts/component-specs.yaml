@@ -1,0 +1,156 @@
+# Component Specifications Contract
+# Defines the structure and content for UI components
+
+version: "1.0.0"
+feature: 005-docusaurus-ui-upgrade
+
+# Homepage Hero Section
+hero:
+  required: true
+  props:
+    title:
+      type: string
+      value: "Physical AI & Robotics"
+    tagline:
+      type: string
+      value: "From Neural Networks to Nervous Systems: Building Intelligent Humanoid Robots"
+    cta_primary:
+      text: "Start Reading"
+      link: "/docs/intro"
+      style: "button--primary button--lg"
+    cta_secondary:
+      text: "View on GitHub"
+      link: "https://github.com/Rabia0125/rabia_hackathon-1_book"
+      style: "button--secondary button--lg"
+  styles:
+    background: "linear-gradient(135deg, var(--ifm-color-primary) 0%, var(--ifm-color-primary-darker) 100%)"
+    min_height: "400px"
+    padding: "4rem 0"
+    text_align: "center"
+    color: "#ffffff"
+
+# Feature Cards
+features:
+  required: true
+  layout: "grid"
+  columns: 4
+  items:
+    - title: "ROS 2 Fundamentals"
+      description: "Master the Robot Operating System for real-time robot control and communication"
+      icon: "robot"
+      link: "/docs/module-1-ros2"
+    - title: "Simulation & Digital Twins"
+      description: "Build virtual robots in Gazebo and Unity for safe testing and development"
+      icon: "simulation"
+      link: "/docs/module-2-simulation"
+    - title: "NVIDIA Isaac Platform"
+      description: "Leverage GPU-accelerated robotics with Isaac Sim and ROS integration"
+      icon: "nvidia"
+      link: "/docs/module-3-isaac"
+    - title: "Vision-Language-Action"
+      description: "Implement cutting-edge VLA models for intelligent robot behavior"
+      icon: "brain"
+      link: "/docs/module-4-vla"
+  card_styles:
+    padding: "1.5rem"
+    border_radius: "0.75rem"
+    background: "var(--ifm-background-surface-color)"
+    hover_shadow: "var(--ifm-global-shadow-md)"
+    transition: "all 0.25s ease"
+
+# Navbar
+navbar:
+  title: "Physical AI & Robotics"
+  logo:
+    alt: "Physical AI Book Logo"
+    src: "img/logo.svg"
+  items:
+    - label: "Book"
+      type: "docSidebar"
+      sidebarId: "tutorialSidebar"
+      position: "left"
+    - label: "GitHub"
+      href: "https://github.com/Rabia0125/rabia_hackathon-1_book"
+      position: "right"
+  styles:
+    background: "var(--ifm-navbar-background-color)"
+    height: "60px"
+    shadow: "var(--ifm-global-shadow-sm)"
+
+# Footer
+footer:
+  style: "dark"
+  columns:
+    - title: "Book"
+      items:
+        - label: "Introduction"
+          to: "/docs/intro"
+        - label: "Module 1: ROS 2"
+          to: "/docs/module-1-ros2"
+        - label: "Module 2: Simulation"
+          to: "/docs/module-2-simulation"
+    - title: "Modules"
+      items:
+        - label: "Module 3: Isaac"
+          to: "/docs/module-3-isaac"
+        - label: "Module 4: VLA"
+          to: "/docs/module-4-vla"
+    - title: "Resources"
+      items:
+        - label: "ROS 2 Documentation"
+          href: "https://docs.ros.org/en/humble/"
+        - label: "NVIDIA Isaac"
+          href: "https://developer.nvidia.com/isaac-sim"
+    - title: "Community"
+      items:
+        - label: "GitHub"
+          href: "https://github.com/Rabia0125/rabia_hackathon-1_book"
+  copyright: "Copyright © {year} Physical AI & Robotics Book. Built with Docusaurus."
+
+# Sidebar
+sidebar:
+  hideable: true
+  collapsible: true
+  autoCollapseCategories: true
+  styles:
+    width: "280px"
+    background: "var(--ifm-background-surface-color)"
+    active_link:
+      background: "var(--ifm-color-primary-lightest)"
+      color: "var(--ifm-color-primary-darkest)"
+      font_weight: "600"
+
+# Table of Contents
+toc:
+  enabled: true
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+  styles:
+    width: "240px"
+    position: "sticky"
+    top: "80px"
+    font_size: "0.875rem"
+
+# Documentation Content
+doc_content:
+  max_width: "75ch"
+  styles:
+    h1:
+      font_size: "2.5rem"
+      margin_top: "0"
+      margin_bottom: "1.5rem"
+    h2:
+      font_size: "2rem"
+      margin_top: "2.5rem"
+      margin_bottom: "1rem"
+    h3:
+      font_size: "1.5rem"
+      margin_top: "2rem"
+      margin_bottom: "0.75rem"
+    paragraph:
+      margin_bottom: "1.25rem"
+    code_block:
+      border_radius: "0.5rem"
+      padding: "1rem"
+      font_size: "15px"
+      line_height: "1.5"
