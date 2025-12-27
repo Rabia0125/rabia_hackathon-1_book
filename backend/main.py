@@ -1,16 +1,22 @@
 """
 RAG Data Pipeline for Physical AI & Robotics Book
 
-Scrapes content from Docusaurus site, generates embeddings with Cohere,
-and stores vectors in Qdrant Cloud for RAG retrieval.
+Scrapes content from Docusaurus site OR local markdown files,
+generates embeddings with Cohere, and stores vectors in Qdrant Cloud for RAG retrieval.
+
+Usage:
+    python main.py           # Scrape from remote site (default)
+    python main.py --local   # Read from local docs directory
 """
 
 import os
+import re
 import sys
 import time
 import uuid
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional
 
 import cohere
@@ -36,11 +42,16 @@ class Config:
     chunk_size: int = 800
     chunk_overlap: int = 100
     batch_size: int = 96
+    local_docs_path: str = ""  # Path to local docs directory
+    use_local: bool = False  # Use local files instead of remote
 
 
-def load_config() -> Config:
+def load_config(use_local: bool = False) -> Config:
     """Load configuration from .env file and environment variables."""
     load_dotenv()
+
+    # Default local docs path (relative to backend directory)
+    default_local_path = str(Path(__file__).parent.parent / "frontend_book" / "docs")
 
     return Config(
         cohere_api_key=os.getenv("COHERE_API_KEY", ""),
@@ -51,6 +62,8 @@ def load_config() -> Config:
         chunk_size=int(os.getenv("CHUNK_SIZE", "800")),
         chunk_overlap=int(os.getenv("CHUNK_OVERLAP", "100")),
         batch_size=int(os.getenv("BATCH_SIZE", "96")),
+        local_docs_path=os.getenv("LOCAL_DOCS_PATH", default_local_path),
+        use_local=use_local,
     )
 
 
@@ -268,6 +281,132 @@ def scrape_page(url: str, delay: float = 0.5, max_retries: int = 3) -> Optional[
             time.sleep(wait_time)
 
     return None
+
+
+# =============================================================================
+# Local File Processing
+# =============================================================================
+
+def discover_local_docs(docs_path: str) -> list[Path]:
+    """Discover all markdown files in the local docs directory."""
+    docs_dir = Path(docs_path)
+    if not docs_dir.exists():
+        raise FileNotFoundError(f"Docs directory not found: {docs_path}")
+
+    # Find all .md files
+    md_files = sorted(docs_dir.rglob("*.md"))
+    print(f"Found {len(md_files)} markdown files in {docs_path}")
+    return md_files
+
+
+def extract_module_from_path(file_path: Path) -> str:
+    """Derive module name from file path."""
+    path_str = str(file_path)
+    if "module-1" in path_str:
+        return "ros2"
+    elif "module-2" in path_str:
+        return "simulation"
+    elif "module-3" in path_str:
+        return "isaac"
+    elif "module-4" in path_str:
+        return "vla"
+    elif "intro" in path_str:
+        return "intro"
+    else:
+        return "general"
+
+
+def parse_markdown_frontmatter(content: str) -> tuple[dict, str]:
+    """Extract YAML frontmatter and body from markdown content."""
+    frontmatter = {}
+    body = content
+
+    # Check for YAML frontmatter (--- delimited)
+    if content.startswith("---"):
+        parts = content.split("---", 2)
+        if len(parts) >= 3:
+            # Parse simple YAML (key: value)
+            for line in parts[1].strip().split("\n"):
+                if ":" in line:
+                    key, value = line.split(":", 1)
+                    frontmatter[key.strip()] = value.strip().strip('"').strip("'")
+            body = parts[2].strip()
+
+    return frontmatter, body
+
+
+def clean_markdown_text(text: str) -> str:
+    """Clean markdown content for embedding."""
+    # Remove code blocks (keep content simple)
+    text = re.sub(r"```[\s\S]*?```", "", text)
+    # Remove inline code
+    text = re.sub(r"`[^`]+`", "", text)
+    # Remove images
+    text = re.sub(r"!\[.*?\]\(.*?\)", "", text)
+    # Convert links to just text
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
+    # Remove HTML tags
+    text = re.sub(r"<[^>]+>", "", text)
+    # Remove markdown headers but keep text
+    text = re.sub(r"^#+\s*", "", text, flags=re.MULTILINE)
+    # Remove bold/italic markers
+    text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
+    text = re.sub(r"\*([^*]+)\*", r"\1", text)
+    text = re.sub(r"__([^_]+)__", r"\1", text)
+    text = re.sub(r"_([^_]+)_", r"\1", text)
+    # Clean up whitespace
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    return "\n".join(lines)
+
+
+def read_local_file(file_path: Path, base_url: str = "local://docs") -> Optional[Page]:
+    """
+    Read a local markdown file and convert to Page object.
+
+    Args:
+        file_path: Path to the markdown file
+        base_url: Base URL for generating virtual URLs
+
+    Returns:
+        Page object or None if file is empty
+    """
+    try:
+        content = file_path.read_text(encoding="utf-8")
+        if not content.strip():
+            return None
+
+        # Parse frontmatter
+        frontmatter, body = parse_markdown_frontmatter(content)
+
+        # Extract title from frontmatter or first heading
+        title = frontmatter.get("title", "")
+        if not title:
+            # Look for first H1
+            h1_match = re.search(r"^#\s+(.+)$", body, re.MULTILINE)
+            if h1_match:
+                title = h1_match.group(1)
+            else:
+                title = file_path.stem.replace("-", " ").replace("_", " ").title()
+
+        # Clean the text
+        clean_text = clean_markdown_text(body)
+        if not clean_text:
+            return None
+
+        # Generate a virtual URL for this file
+        relative_path = file_path.relative_to(file_path.parent.parent)
+        virtual_url = f"{base_url}/{relative_path.as_posix().replace('.md', '')}"
+
+        return Page(
+            url=virtual_url,
+            title=title,
+            module_name=extract_module_from_path(file_path),
+            extracted_text=clean_text
+        )
+
+    except Exception as e:
+        print(f"Error reading {file_path}: {e}")
+        return None
 
 
 # =============================================================================
@@ -506,27 +645,8 @@ def print_summary(stats: PipelineStats) -> None:
 # Main Pipeline
 # =============================================================================
 
-def main() -> None:
-    """Main pipeline entry point."""
-    print("Starting RAG Data Pipeline...")
-    print("-" * 50)
-
-    # Load and validate config
-    config = load_config()
-    validate_config(config)
-
-    # Initialize clients
-    cohere_client = cohere.Client(api_key=config.cohere_api_key)
-    qdrant_client = QdrantClient(
-        url=config.qdrant_url,
-        api_key=config.qdrant_api_key
-    )
-
-    # Initialize collection
-    init_qdrant_collection(qdrant_client, config.collection_name)
-
-    # Initialize stats
-    stats = PipelineStats()
+def process_pages_remote(config: Config, stats: PipelineStats) -> tuple[list[Chunk], set[str]]:
+    """Process pages from remote site via sitemap."""
     all_chunks: list[Chunk] = []
     all_chunk_ids: set[str] = set()
 
@@ -538,7 +658,7 @@ def main() -> None:
         sys.exit(3)
 
     # Process each page
-    print(f"\nProcessing {len(urls)} pages...")
+    print(f"\nProcessing {len(urls)} pages from remote site...")
     for i, url in enumerate(urls, 1):
         print(f"  [{i}/{len(urls)}] {url.split('/')[-1] or 'index'}...", end=" ")
 
@@ -579,6 +699,99 @@ def main() -> None:
         except Exception as e:
             print(f"ERROR: {e}")
             stats.add_error(url, str(e))
+
+    return all_chunks, all_chunk_ids
+
+
+def process_pages_local(config: Config, stats: PipelineStats) -> tuple[list[Chunk], set[str]]:
+    """Process pages from local markdown files."""
+    all_chunks: list[Chunk] = []
+    all_chunk_ids: set[str] = set()
+
+    # Discover local docs
+    try:
+        doc_files = discover_local_docs(config.local_docs_path)
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(3)
+
+    # Process each file
+    print(f"\nProcessing {len(doc_files)} local markdown files...")
+    for i, file_path in enumerate(doc_files, 1):
+        print(f"  [{i}/{len(doc_files)}] {file_path.name}...", end=" ")
+
+        try:
+            page = read_local_file(file_path)
+
+            if not page or not page.extracted_text:
+                print("(no content)")
+                continue
+
+            # Chunk the text
+            text_chunks = chunk_text(
+                page.extracted_text,
+                size=config.chunk_size,
+                overlap=config.chunk_overlap
+            )
+
+            # Create Chunk objects
+            page_chunks = []
+            for idx, text in enumerate(text_chunks):
+                chunk_id = generate_chunk_id(page.url, idx)
+                chunk = Chunk(
+                    id=chunk_id,
+                    text=text,
+                    chunk_index=idx,
+                    char_count=len(text),
+                    source_url=page.url,
+                    page_title=page.title,
+                    module_name=page.module_name
+                )
+                page_chunks.append(chunk)
+                all_chunk_ids.add(chunk_id)
+
+            all_chunks.extend(page_chunks)
+            stats.add_page(page.module_name, len(page_chunks))
+            print(f"{len(page_chunks)} chunks")
+
+        except Exception as e:
+            print(f"ERROR: {e}")
+            stats.add_error(str(file_path), str(e))
+
+    return all_chunks, all_chunk_ids
+
+
+def main() -> None:
+    """Main pipeline entry point."""
+    # Check for --local flag
+    use_local = "--local" in sys.argv
+
+    print("Starting RAG Data Pipeline...")
+    print(f"Mode: {'LOCAL FILES' if use_local else 'REMOTE SITE'}")
+    print("-" * 50)
+
+    # Load and validate config
+    config = load_config(use_local=use_local)
+    validate_config(config)
+
+    # Initialize clients
+    cohere_client = cohere.Client(api_key=config.cohere_api_key)
+    qdrant_client = QdrantClient(
+        url=config.qdrant_url,
+        api_key=config.qdrant_api_key
+    )
+
+    # Initialize collection
+    init_qdrant_collection(qdrant_client, config.collection_name)
+
+    # Initialize stats
+    stats = PipelineStats()
+
+    # Process pages based on mode
+    if use_local:
+        all_chunks, all_chunk_ids = process_pages_local(config, stats)
+    else:
+        all_chunks, all_chunk_ids = process_pages_remote(config, stats)
 
     # Generate embeddings
     if all_chunks:

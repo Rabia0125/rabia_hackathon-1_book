@@ -2,7 +2,6 @@
 name = "rag-data-pipeline"
 version = "0.1.0"
 description = "RAG Data Pipeline for Physical AI & Robotics Book"
-readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "cohere>=5.0.0",
@@ -11,10 +10,3 @@ dependencies = [
     "httpx>=0.27.0",
     "beautifulsoup4>=4.12.0",
 ]
-
-[project.scripts]
-rag-pipeline = "main:main"
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
