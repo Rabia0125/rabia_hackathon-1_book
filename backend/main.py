@@ -519,7 +519,9 @@ def generate_embeddings(
 # =============================================================================
 
 def init_qdrant_collection(client: QdrantClient, collection_name: str) -> None:
-    """Create Qdrant collection if it doesn't exist."""
+    """Create Qdrant collection if it doesn't exist, and ensure indexes are set."""
+    from qdrant_client.models import PayloadSchemaType
+
     collections = client.get_collections().collections
     exists = any(c.name == collection_name for c in collections)
 
@@ -531,6 +533,27 @@ def init_qdrant_collection(client: QdrantClient, collection_name: str) -> None:
         )
     else:
         print(f"Collection '{collection_name}' already exists")
+
+    # Create payload indexes for filtering (required for Qdrant filtering)
+    try:
+        client.create_payload_index(
+            collection_name=collection_name,
+            field_name="module_name",
+            field_schema=PayloadSchemaType.KEYWORD
+        )
+        print("  Created index on 'module_name'")
+    except Exception:
+        pass  # Index may already exist
+
+    try:
+        client.create_payload_index(
+            collection_name=collection_name,
+            field_name="page_url",
+            field_schema=PayloadSchemaType.KEYWORD
+        )
+        print("  Created index on 'page_url'")
+    except Exception:
+        pass  # Index may already exist
 
 
 def upsert_vectors(
