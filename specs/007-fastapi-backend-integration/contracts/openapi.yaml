@@ -1,0 +1,361 @@
+openapi: 3.1.0
+info:
+  title: RAG Chatbot API
+  description: |
+    FastAPI backend for the Physical AI & Robotics book RAG chatbot.
+    Provides natural language query endpoints with citation-backed answers.
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: https://github.com/yourusername/your-repo
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.yourdomain.com
+    description: Production server
+
+paths:
+  /chat:
+    post:
+      summary: Submit a chat query
+      description: |
+        Accepts a natural language query about the book content and returns
+        an AI-generated answer with citations from retrieved sections.
+        Supports optional selected text for contextual queries and module filtering.
+      operationId: chat
+      tags:
+        - Chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              simple_query:
+                summary: Simple book-wide query
+                value:
+                  query: "What is ROS 2?"
+              contextual_query:
+                summary: Query with selected text context
+                value:
+                  query: "Explain this code"
+                  selected_text: "ros2 run demo_nodes_cpp talker"
+              filtered_query:
+                summary: Query filtered to specific module
+                value:
+                  query: "How do I set up Gazebo?"
+                  module_filter: "simulation"
+                  top_k: 10
+      responses:
+        '200':
+          description: Successful response with answer and citations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                high_confidence:
+                  summary: High confidence answer with citations
+                  value:
+                    answer: "ROS 2 is the second generation of the Robot Operating System, designed for production robotics applications."
+                    citations:
+                      - page_title: "Introduction to ROS 2"
+                        page_url: "/docs/ros2/intro"
+                        module_name: "ros2"
+                    confidence: "high"
+                    retrieval_time_ms: 145.3
+                    generation_time_ms: 820.5
+                    total_time_ms: 965.8
+                    error: null
+                no_results:
+                  summary: No relevant content found
+                  value:
+                    answer: "I couldn't find relevant information in the book to answer your question."
+                    citations: []
+                    confidence: "none"
+                    retrieval_time_ms: 120.2
+                    generation_time_ms: 250.1
+                    total_time_ms: 370.3
+                    error: null
+        '400':
+          description: Validation error (empty query, too long, invalid params)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                empty_query:
+                  summary: Empty or whitespace-only query
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Query is required and cannot be empty"
+                      suggestion: "Please enter a question about the book content"
+                query_too_long:
+                  summary: Query exceeds 2000 characters
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Query exceeds maximum length of 2000 characters"
+                      suggestion: "Please shorten your question"
+        '500':
+          description: Internal server error (agent failure, unexpected error)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                agent_error:
+                  summary: OpenAI agent failure
+                  value:
+                    error:
+                      code: "AGENT_ERROR"
+                      message: "Unable to generate a response. Please try again."
+                      suggestion: "If the problem persists, contact support"
+        '503':
+          description: Service unavailable (retrieval pipeline down)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                retrieval_error:
+                  summary: Qdrant connection failure
+                  value:
+                    error:
+                      code: "RETRIEVAL_ERROR"
+                      message: "Search service is temporarily unavailable"
+                      suggestion: "Please try again in a few moments"
+
+  /health:
+    get:
+      summary: Health check (liveness probe)
+      description: |
+        Returns 200 if the API process is alive. Used by container orchestrators
+        for liveness checks. Does not verify external dependencies.
+      operationId: health
+      tags:
+        - Health
+      responses:
+        '200':
+          description: API is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+              example:
+                status: "ok"
+
+  /ready:
+    get:
+      summary: Readiness check (readiness probe)
+      description: |
+        Returns 200 if the API can serve traffic. Verifies agent module, Qdrant
+        connection, and environment configuration. Used by load balancers to
+        determine if instance should receive requests.
+      operationId: readiness
+      tags:
+        - Health
+      responses:
+        '200':
+          description: API is ready to serve requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              example:
+                status: "ready"
+                checks:
+                  agent: true
+                  retrieval: true
+                  env: true
+                version: "1.0.0"
+        '503':
+          description: API is not ready (dependency failure)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              example:
+                status: "not ready"
+                checks:
+                  agent: true
+                  retrieval: false
+                  env: true
+                version: "1.0.0"
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Natural language question about the book content
+          example: "What is ROS 2?"
+        selected_text:
+          type: string
+          maxLength: 5000
+          nullable: true
+          description: Optional highlighted text for contextual search
+          example: "ros2 run demo_nodes_cpp talker"
+        module_filter:
+          type: string
+          enum: [intro, ros2, simulation, isaac, vla]
+          nullable: true
+          description: Filter retrieval to specific book module
+          example: "ros2"
+        top_k:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 5
+          description: Number of retrieval results to return
+          example: 5
+
+    ChatResponse:
+      type: object
+      required:
+        - answer
+        - citations
+        - confidence
+        - retrieval_time_ms
+        - generation_time_ms
+        - total_time_ms
+      properties:
+        answer:
+          type: string
+          description: AI-generated answer to the query
+          example: "ROS 2 is the second generation of the Robot Operating System."
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Citation'
+          description: List of book sources cited in the answer
+        confidence:
+          type: string
+          enum: [high, low, none]
+          description: Confidence level based on retrieval relevance
+          example: "high"
+        retrieval_time_ms:
+          type: number
+          format: float
+          minimum: 0
+          description: Time spent retrieving context from Qdrant (milliseconds)
+          example: 145.3
+        generation_time_ms:
+          type: number
+          format: float
+          minimum: 0
+          description: Time spent generating answer via OpenAI agent (milliseconds)
+          example: 820.5
+        total_time_ms:
+          type: number
+          format: float
+          minimum: 0
+          description: Total request processing time (milliseconds)
+          example: 965.8
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+          nullable: true
+          description: Present only if error occurred
+
+    Citation:
+      type: object
+      required:
+        - page_title
+        - page_url
+        - module_name
+      properties:
+        page_title:
+          type: string
+          description: Title of the book page
+          example: "Introduction to ROS 2"
+        page_url:
+          type: string
+          description: Relative URL to the page
+          example: "/docs/ros2/intro"
+        module_name:
+          type: string
+          description: Book module identifier
+          example: "ros2"
+
+    ErrorDetail:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code (SCREAMING_SNAKE_CASE)
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: User-friendly error message
+          example: "Query is required and cannot be empty"
+        suggestion:
+          type: string
+          nullable: true
+          description: Optional actionable suggestion for the user
+          example: "Please enter a question about the book content"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+
+    HealthStatus:
+      type: object
+      required:
+        - status
+        - checks
+        - version
+      properties:
+        status:
+          type: string
+          enum: [ready, not ready, degraded]
+          description: Overall system status
+          example: "ready"
+        checks:
+          type: object
+          required:
+            - agent
+            - retrieval
+            - env
+          properties:
+            agent:
+              type: boolean
+              description: True if agent.py module loads successfully
+              example: true
+            retrieval:
+              type: boolean
+              description: True if Qdrant connection is healthy
+              example: true
+            env:
+              type: boolean
+              description: True if required environment variables are set
+              example: true
+        version:
+          type: string
+          description: API version
+          example: "1.0.0"
+
+tags:
+  - name: Chat
+    description: Natural language query endpoints
+  - name: Health
+    description: Health check and readiness endpoints

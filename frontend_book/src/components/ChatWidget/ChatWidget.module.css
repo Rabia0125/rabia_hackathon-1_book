@@ -1,0 +1,228 @@
+/**
+ * ChatWidget Component Styles
+ */
+
+.chatWidget {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  background-color: var(--ifm-background-surface-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  margin-bottom: 1rem;
+}
+
+.header h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  color: var(--ifm-color-primary);
+}
+
+.contextNote {
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-700);
+  font-style: italic;
+  margin: 0;
+}
+
+.form {
+  margin-bottom: 1.5rem;
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--ifm-color-emphasis-400);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 113, 255, 0.1);
+}
+
+.textarea:disabled {
+  background-color: var(--ifm-color-emphasis-100);
+  cursor: not-allowed;
+}
+
+.formFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.charCount {
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.submitButton {
+  padding: 0.5rem 1.5rem;
+  background-color: var(--ifm-color-primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: var(--ifm-color-primary-dark);
+}
+
+.submitButton:disabled {
+  background-color: var(--ifm-color-emphasis-400);
+  cursor: not-allowed;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--ifm-color-emphasis-100);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--ifm-color-emphasis-300);
+  border-top-color: var(--ifm-color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  padding: 1rem;
+  background-color: #fff5f5;
+  border: 1px solid #fc8181;
+  border-radius: 4px;
+  color: #c53030;
+  margin-bottom: 1rem;
+}
+
+.response {
+  margin-top: 1.5rem;
+}
+
+.answer {
+  padding: 1rem;
+  background-color: var(--ifm-color-emphasis-100);
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.answer h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: var(--ifm-color-primary);
+}
+
+.answer p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.confidence {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.confidenceBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.confidence.high .confidenceBadge {
+  background-color: #c6f6d5;
+  color: #22543d;
+}
+
+.confidence.low .confidenceBadge {
+  background-color: #feebc8;
+  color: #7c2d12;
+}
+
+.confidence.none .confidenceBadge {
+  background-color: #fed7d7;
+  color: #742a2a;
+}
+
+.citations {
+  margin-bottom: 1rem;
+}
+
+.citations h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: var(--ifm-font-color-base);
+}
+
+.citationList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.citation {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.citation:last-child {
+  border-bottom: none;
+}
+
+.citation a {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.citation a:hover {
+  text-decoration: underline;
+}
+
+.module {
+  margin-left: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.metrics {
+  padding: 0.5rem;
+  background-color: var(--ifm-color-emphasis-100);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.metrics small {
+  color: var(--ifm-color-emphasis-700);
+}
