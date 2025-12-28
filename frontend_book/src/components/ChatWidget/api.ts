@@ -5,8 +5,9 @@
  * Provides TypeScript interfaces matching the backend Pydantic models.
  */
 
-// API base URL from environment variable, fallback to localhost
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// API base URL - hardcoded for browser compatibility
+// In production, this should be set via Docusaurus customFields
+const API_BASE_URL = 'http://localhost:8001';
 
 /**
  * ChatRequest interface (matches backend ChatRequest model)
