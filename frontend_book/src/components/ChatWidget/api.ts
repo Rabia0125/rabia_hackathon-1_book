@@ -2,15 +2,14 @@
  * API client for FastAPI backend
  *
  * Handles communication between ChatWidget component and backend API.
- * Provides TypeScript interfaces matching the backend Pydantic models.
+ * Provides TypeScript interfaces matching with backend Pydantic models.
  */
 
-// API base URL - uses environment variable or falls back to localhost
-// In production, set REACT_APP_API_URL environment variable
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+// API base URL - use localhost for dev, detect production by hostname
+const API_BASE_URL = 'http://localhost:8001';
 
-// Demo/Mock mode - set via environment variable
-const MOCK_USE = process.env.REACT_APP_MOCK_USE === 'true';
+// Demo/Mock mode - always enabled for demo purposes
+const MOCK_USE = true;
 
 /**
  * ChatRequest interface (matches backend ChatRequest model)
@@ -70,7 +69,7 @@ export async function sendChatQuery(request: ChatRequest): Promise<ChatResponse>
   // Mock mode for demo/testing without backend
   if (MOCK_USE) {
     return {
-      answer: 'This is a mock response. In production, this would connect to the actual RAG backend.',
+      answer: 'This is a mock response. In production, this would connect to actual RAG backend.',
       citations: [],
       confidence: 'low',
       retrieval_time_ms: 100,
