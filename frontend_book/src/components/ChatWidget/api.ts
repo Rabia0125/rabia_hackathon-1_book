@@ -1,13 +1,16 @@
 /**
  * API client for FastAPI backend
  *
- * Handles communication between the ChatWidget component and the backend API.
+ * Handles communication between ChatWidget component and backend API.
  * Provides TypeScript interfaces matching the backend Pydantic models.
  */
 
-// API base URL - hardcoded for browser compatibility
-// In production, this should be set via Docusaurus customFields
-const API_BASE_URL = 'http://localhost:8001';
+// API base URL - uses environment variable or falls back to localhost
+// In production, set REACT_APP_API_URL environment variable
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+
+// Demo/Mock mode - set via environment variable
+const MOCK_USE = process.env.REACT_APP_MOCK_USE === 'true';
 
 /**
  * ChatRequest interface (matches backend ChatRequest model)
@@ -57,13 +60,25 @@ export interface ErrorResponse {
 }
 
 /**
- * Send a chat query to the backend API
+ * Send a chat query to backend API
  *
  * @param request - ChatRequest with query and optional parameters
  * @returns Promise<ChatResponse> - The response with answer, citations, and metrics
  * @throws Error with user-friendly message if request fails
  */
 export async function sendChatQuery(request: ChatRequest): Promise<ChatResponse> {
+  // Mock mode for demo/testing without backend
+  if (MOCK_USE) {
+    return {
+      answer: 'This is a mock response. In production, this would connect to the actual RAG backend.',
+      citations: [],
+      confidence: 'low',
+      retrieval_time_ms: 100,
+      generation_time_ms: 200,
+      total_time_ms: 300
+    };
+  }
+
   try {
     const response = await fetch(`${API_BASE_URL}/chat`, {
       method: 'POST',
@@ -76,7 +91,7 @@ export async function sendChatQuery(request: ChatRequest): Promise<ChatResponse>
     // Handle HTTP error responses
     if (!response.ok) {
       const errorData: ErrorResponse = await response.json();
-      throw new Error(errorData.error.message || 'Failed to get response from the API');
+      throw new Error(errorData.error.message || 'Failed to get response from API');
     }
 
     const data: ChatResponse = await response.json();
