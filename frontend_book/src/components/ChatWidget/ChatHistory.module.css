@@ -1,0 +1,98 @@
+/**
+ * ChatHistory Component Styles
+ */
+
+.chatHistory {
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  max-height: 400px;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0 0 8px 8px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--ifm-background-surface);
+  border-radius: 8px 8px 0 0;
+}
+
+.header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--ifm-color-primary);
+}
+
+.clearButton {
+  padding: 0.4rem 0.8rem;
+  background: var(--ifm-color-emphasis-600);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.clearButton:hover {
+  background: var(--ifm-color-primary-dark);
+}
+
+.messagesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.message {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin: 0;
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.userMessage {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 75%;
+}
+
+.assistantMessage {
+  background: white;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  max-width: 85%;
+}
+
+@media (max-width: 768px) {
+  .userMessage {
+    max-width: 90%;
+  }
+
+  .assistantMessage {
+    max-width: 95%;
+  }
+}

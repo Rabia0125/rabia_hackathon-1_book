@@ -5,6 +5,7 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
 import Heading from '@theme/Heading';
+import Conversation from '@site/src/components/ChatWidget/Conversation';
 
 import styles from './index.module.css';
 
@@ -43,6 +44,9 @@ export default function Home(): ReactNode {
       <HomepageHeader />
       <main>
         <HomepageFeatures />
+        <section className="container" style={{paddingTop: '3rem', paddingBottom: '3rem'}}>
+          <Conversation />
+        </section>
       </main>
     </Layout>
   );
